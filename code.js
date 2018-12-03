@@ -1,40 +1,20 @@
 const screenWidth = 10;
 const screenHeight = 24;
 
-let center = 2;
-
-let tetromino = [];
 let board;
+let tetromino;
 
 function setup() {
   noCanvas();
   frameRate(1);
   drawTable();
   setupBoard();
-  tetromino.push(new Vector(-1, 1));
-  tetromino.push(new Vector(-1, 0));
-  tetromino.push(new Vector(0, 0));
-  tetromino.push(new Vector(1, 0));
+  tetromino = new Tetromino(5, 1, 'todo');
 }
 
 function draw() {
   drawBoard();
-  drawTetromino();
-  rotateTetromino();
-}
-
-function rotateTetromino() {
-  for (let i = 0; i < tetromino.length; i++) {
-    tetromino[i].rotate();
-  }
-}
-
-function drawTetromino() {
-  for (let i = 0; i < tetromino.length; i++) {
-    let vector = tetromino[i];
-    updateTableCell(center + vector.y, 5 + vector.x, 1);
-  }
-  center++;
+  tetromino.move(0, 1).rotate().draw();
 }
 
 function drawBoard() {
@@ -72,7 +52,49 @@ function drawTable() {
   }
 }
 
-function Vector(x, y) {
+/**
+ * Constructor function for Tetromino object representing the actively falling block
+ * @constructor
+ */
+function Tetromino(x, y, shape) {
+  this.cells = []; // will be set using the shape
+  this.color = 1; // will be set using the shape
+  this.center = new Cell(x, y);
+
+  //only for the time being, the shapes would enumerated
+  this.cells.push(new Cell(-1, 1));
+  this.cells.push(new Cell(-1, 0));
+  this.cells.push(new Cell(0, 0));
+  this.cells.push(new Cell(1, 0));
+
+  this.move = function (x, y) {
+    this.center.y = this.center.y + x;
+    this.center.y = this.center.y + y;
+    return this;
+  }
+
+  this.rotate = function () {
+    for (let i = 0; i < this.cells.length; i++) {
+      this.cells[i].rotate();
+    }
+    return this;
+  };
+
+  this.draw = function () {
+    for (let i = 0; i < this.cells.length; i++) {
+      let cell = this.cells[i];
+      updateTableCell(this.center.y + cell.y, this.center.x + cell.x, this.color);
+    }
+  };
+}
+
+/**
+ * Object representing a coordinate pair
+ * @param x is the horizontal coordinate of the given point
+ * @param y is the vertical coordinate of the given point
+ * @constructor
+ */
+function Cell(x, y) {
   this.x = x;
   this.y = y;
   this.rotate = function () {
