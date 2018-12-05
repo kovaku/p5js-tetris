@@ -8,35 +8,18 @@ function setup() {
   noCanvas();
   frameRate(1);
   drawTable();
-  setupBoard();
+  board = new TetrisBoard(screenHeight, screenWidth);
+  board.setup();
   tetromino = new Tetromino(5, 1, 'todo');
 }
 
 function draw() {
-  drawBoard();
+  board.draw();
   tetromino.move(0, 1).rotate().draw();
-}
-
-function drawBoard() {
-  for (let r = 0; r < screenHeight; r++) {
-    for (let c = 0; c < screenWidth; c++) {
-      updateTableCell(r, c, board[r][c]);
-    }
-  }
 }
 
 function updateTableCell(r, c, value) {
   select('.r' + r + 'c' + c).attribute('value', value).html(value);
-}
-
-function setupBoard() {
-  board = new Array(screenHeight);
-  for (let i = 0; i < board.length; i++) {
-    board[i] = new Array(screenWidth);
-    for (let j = 0; j < board[i].length; j++) {
-      board[i][j] = 0;
-    }
-  }
 }
 
 function drawTable() {
@@ -50,6 +33,30 @@ function drawTable() {
       .addClass('cell'));
     }
   }
+}
+
+function TetrisBoard(height, width) {
+  this.height = height;
+  this.width = width;
+  this.board = [];
+
+  this.setup = function () {
+    this.board = new Array(this.height);
+    for (let r = 0; r < this.board.length; r++) {
+      this.board[r] = new Array(this.width);
+      for (let c = 0; c < this.board[r].length; c++) {
+        this.board[r][c] = 0;
+      }
+    }
+  };
+
+  this.draw = function () {
+    for (let r = 0; r < this.height; r++) {
+      for (let c = 0; c < this.width; c++) {
+        updateTableCell(r, c, this.board[r][c]);
+      }
+    }
+  };
 }
 
 /**
@@ -71,7 +78,7 @@ function Tetromino(x, y, shape) {
     this.center.y = this.center.y + x;
     this.center.y = this.center.y + y;
     return this;
-  }
+  };
 
   this.rotate = function () {
     for (let i = 0; i < this.cells.length; i++) {
@@ -83,7 +90,8 @@ function Tetromino(x, y, shape) {
   this.draw = function () {
     for (let i = 0; i < this.cells.length; i++) {
       let cell = this.cells[i];
-      updateTableCell(this.center.y + cell.y, this.center.x + cell.x, this.color);
+      updateTableCell(this.center.y + cell.y, this.center.x + cell.x,
+          this.color);
     }
   };
 }
