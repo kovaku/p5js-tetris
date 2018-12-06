@@ -6,16 +6,21 @@ let tetromino;
 
 function setup() {
   noCanvas();
-  frameRate(1);
+  frameRate(5);
   drawTable();
   board = new TetrisBoard(screenHeight, screenWidth);
   board.setup();
-  tetromino = new Tetromino(5, 1, 'todo');
+  tetromino = new Tetromino(1, 5, 'todo', board);
 }
 
 function draw() {
   board.draw();
-  tetromino.move(0, 1).rotate().draw();
+  if(!tetromino.tryToMove(1, 0)) {
+    board.merge(tetromino);
+    board.draw();
+    tetromino = new Tetromino(1, 5, 'todo', board);
+  }
+  tetromino.draw();
 }
 
 function updateTableCell(r, c, value) {
@@ -57,16 +62,24 @@ function TetrisBoard(height, width) {
       }
     }
   };
+
+  this.merge = function (tetromino) {
+    for (let i = 0; i < tetromino.cells.length; i++) {
+      let cell = tetromino.cells[i];
+      this.board[tetromino.center.r + cell.r][tetromino.center.c + cell.c] = tetromino.color;
+    }
+  }
 }
 
 /**
  * Constructor function for Tetromino object representing the actively falling block
  * @constructor
  */
-function Tetromino(x, y, shape) {
+function Tetromino(r, c, shape, board) {
   this.cells = []; // will be set using the shape
   this.color = 1; // will be set using the shape
-  this.center = new Cell(x, y);
+  this.center = new Cell(r, c);
+  this.board = board;
 
   //only for the time being, the shapes would enumerated
   this.cells.push(new Cell(-1, 1));
@@ -74,10 +87,24 @@ function Tetromino(x, y, shape) {
   this.cells.push(new Cell(0, 0));
   this.cells.push(new Cell(1, 0));
 
-  this.move = function (x, y) {
-    this.center.y = this.center.y + x;
-    this.center.y = this.center.y + y;
-    return this;
+  this.tryToMove = function (r, c) {
+    let temp_r = this.center.r + r;
+    let temp_c = this.center.c + c;
+
+    for (let i = 0; i < tetromino.cells.length; i++) {
+      let cell = this.cells[i];
+      let temp_cell_c = temp_c + cell.c;
+      let temp_cell_r = temp_r + cell.r;
+
+      if(temp_cell_c === screenWidth || temp_cell_c < 0) return false;
+      if(temp_cell_r === screenHeight) return false;
+      if(this.board.board[temp_cell_r][temp_cell_c] !== 0) return false;
+    }
+
+    //After move
+    this.center.r = temp_r;
+    this.center.c = temp_c;
+    return true;
   };
 
   this.rotate = function () {
@@ -90,7 +117,7 @@ function Tetromino(x, y, shape) {
   this.draw = function () {
     for (let i = 0; i < this.cells.length; i++) {
       let cell = this.cells[i];
-      updateTableCell(this.center.y + cell.y, this.center.x + cell.x,
+      updateTableCell(this.center.r + cell.r, this.center.c + cell.c,
           this.color);
     }
   };
@@ -98,16 +125,16 @@ function Tetromino(x, y, shape) {
 
 /**
  * Object representing a coordinate pair
- * @param x is the horizontal coordinate of the given point
- * @param y is the vertical coordinate of the given point
+ * @param r is the vertical coordinate of the given point
+ * @param c is the horizontal coordinate of the given point
  * @constructor
  */
-function Cell(x, y) {
-  this.x = x;
-  this.y = y;
+function Cell(r, c) {
+  this.r = r;
+  this.c = c;
   this.rotate = function () {
-    let temp_x = 0 - this.y;
-    this.y = this.x;
-    this.x = temp_x;
+    let temp_c = 0 - this.r;
+    this.r = this.c;
+    this.c = temp_c;
   }
 }
