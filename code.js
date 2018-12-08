@@ -6,7 +6,7 @@ let tetromino;
 
 function setup() {
   noCanvas();
-  frameRate(5);
+  frameRate(30);
   drawTable();
   board = new TetrisBoard(screenHeight, screenWidth);
   board.setup();
@@ -14,17 +14,39 @@ function setup() {
 }
 
 function draw() {
-  board.draw();
-  if(!tetromino.tryToMove(1, 0)) {
+  if (keyIsDown(LEFT_ARROW)) {
+    tetromino.tryToMove(0, -1);
+    board.draw();
+    tetromino.draw();
+  } else if (keyIsDown(RIGHT_ARROW)) {
+    tetromino.tryToMove(0, 1);
+    board.draw();
+    tetromino.draw();
+  } else if (keyIsDown(DOWN_ARROW)) {
+    while (tetromino.tryToMove(1, 0)) {
+      board.draw();
+      tetromino.draw();
+    }
+  } else if (keyIsDown(32)) {
+    tetromino.rotate();
+    board.draw();
+    tetromino.draw();
+  }
+
+  if (frameCount % 5 === 0 && !tetromino.tryToMove(1, 0)) {
+    board.draw();
     board.merge(tetromino);
     board.draw();
     tetromino = new Tetromino(1, 5, 'todo', board);
+    tetromino.draw();
   }
+
+  board.draw();
   tetromino.draw();
 }
 
 function updateTableCell(r, c, value) {
-  select('.r' + r + 'c' + c).attribute('value', value).html(value);
+  select('.r' + r + 'c' + c).attribute('value', value).html('\u00B7');
 }
 
 function drawTable() {
@@ -66,7 +88,8 @@ function TetrisBoard(height, width) {
   this.merge = function (tetromino) {
     for (let i = 0; i < tetromino.cells.length; i++) {
       let cell = tetromino.cells[i];
-      this.board[tetromino.center.r + cell.r][tetromino.center.c + cell.c] = tetromino.color;
+      this.board[tetromino.center.r + cell.r][tetromino.center.c
+      + cell.c] = tetromino.color;
     }
   }
 }
@@ -96,9 +119,15 @@ function Tetromino(r, c, shape, board) {
       let temp_cell_c = temp_c + cell.c;
       let temp_cell_r = temp_r + cell.r;
 
-      if(temp_cell_c === screenWidth || temp_cell_c < 0) return false;
-      if(temp_cell_r === screenHeight) return false;
-      if(this.board.board[temp_cell_r][temp_cell_c] !== 0) return false;
+      if (temp_cell_c === screenWidth || temp_cell_c < 0) {
+        return false;
+      }
+      if (temp_cell_r === screenHeight) {
+        return false;
+      }
+      if (this.board.board[temp_cell_r][temp_cell_c] !== 0) {
+        return false;
+      }
     }
 
     //After move
