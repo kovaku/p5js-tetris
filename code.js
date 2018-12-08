@@ -6,7 +6,7 @@ let tetromino;
 
 function setup() {
   noCanvas();
-  frameRate(30);
+  frameRate(25);
   drawTable();
   board = new TetrisBoard(screenHeight, screenWidth);
   board.setup();
@@ -14,33 +14,35 @@ function setup() {
 }
 
 function draw() {
+
+  //Moves
   if (keyIsDown(LEFT_ARROW)) {
     tetromino.tryToMove(0, -1);
-    board.draw();
-    tetromino.draw();
+    drawTetris();
   } else if (keyIsDown(RIGHT_ARROW)) {
     tetromino.tryToMove(0, 1);
-    board.draw();
-    tetromino.draw();
+    drawTetris();
   } else if (keyIsDown(DOWN_ARROW)) {
-    while (tetromino.tryToMove(1, 0)) {
-      board.draw();
-      tetromino.draw();
-    }
+    tetromino.drop();
+    drawTetris();
   } else if (keyIsDown(32)) {
     tetromino.rotate();
-    board.draw();
-    tetromino.draw();
+    drawTetris();
   }
 
+  //Drop
   if (frameCount % 5 === 0 && !tetromino.tryToMove(1, 0)) {
     board.draw();
     board.merge(tetromino);
-    board.draw();
     tetromino = new Tetromino(1, 5, 'todo', board);
-    tetromino.draw();
+    drawTetris();
+  } else {
+    drawTetris();
   }
+}
 
+function drawTetris() {
+  //Todo: draw only the change
   board.draw();
   tetromino.draw();
 }
@@ -91,6 +93,20 @@ function TetrisBoard(height, width) {
       this.board[tetromino.center.r + cell.r][tetromino.center.c
       + cell.c] = tetromino.color;
     }
+    this.clearFullLines();
+  };
+
+  this.clearFullLines = function () {
+    for (let r = this.height - 1; r >= 0; r--) {
+      let isFull = true;
+      for (let c = 0; c < this.width; c++) {
+        isFull = isFull && (this.board[r][c] !== 0);
+      }
+      if (isFull) {
+        //Todo: Remove lines and shift
+        console.log(r + '. row is full:' + isFull);
+      }
+    }
   }
 }
 
@@ -134,6 +150,11 @@ function Tetromino(r, c, shape, board) {
     this.center.r = temp_r;
     this.center.c = temp_c;
     return true;
+  };
+
+  this.drop = function () {
+    while (tetromino.tryToMove(1, 0)) {
+    }
   };
 
   this.rotate = function () {
