@@ -97,14 +97,21 @@ function TetrisBoard(height, width) {
   };
 
   this.clearFullLines = function () {
-    for (let r = this.height - 1; r >= 0; r--) {
+    for (let r = 0; r < this.height; r++) {
       let isFull = true;
       for (let c = 0; c < this.width; c++) {
         isFull = isFull && (this.board[r][c] !== 0);
       }
       if (isFull) {
-        //Todo: Remove lines and shift
-        console.log(r + '. row is full:' + isFull);
+        for (let r_up = r; r_up >= 0 ; r_up--) {
+          for (let c_up = 0; c_up < this.width; c_up++) {
+            if(r_up !== 0) {
+              this.board[r_up][c_up] = this.board[r_up - 1][c_up];
+            } else {
+              this.board[r_up][c_up] = 0;
+            }
+          }
+        }
       }
     }
   }
