@@ -26,7 +26,7 @@ function draw() {
     tetromino.drop();
     drawTetris();
   } else if (keyIsDown(32)) {
-    tetromino.rotate();
+    tetromino.tryToRotate();
     drawTetris();
   }
 
@@ -164,11 +164,32 @@ function Tetromino(r, c, shape, board) {
     }
   };
 
-  this.rotate = function () {
+  this.tryToRotate = function () {
+
+    let temp_Cells = [];
+
     for (let i = 0; i < this.cells.length; i++) {
-      this.cells[i].rotate();
+      let temp_c = 0 - this.cells[i].r;
+      let temp_r = this.cells[i].c;
+
+      let temp_cell_c = this.center.c + temp_c;
+      let temp_cell_r = this.center.r + temp_r;
+
+      if (temp_cell_c === screenWidth || temp_cell_c < 0) {
+        return false;
+      }
+      if (temp_cell_r === screenHeight) {
+        return false;
+      }
+      if (this.board.board[temp_cell_r][temp_cell_c] !== 0) {
+        return false;
+      }
+
+      temp_Cells.push(new Cell(temp_r, temp_c))
     }
-    return this;
+
+    //After rotate
+    this.cells = temp_Cells;
   };
 
   this.draw = function () {
@@ -189,9 +210,4 @@ function Tetromino(r, c, shape, board) {
 function Cell(r, c) {
   this.r = r;
   this.c = c;
-  this.rotate = function () {
-    let temp_c = 0 - this.r;
-    this.r = this.c;
-    this.c = temp_c;
-  }
 }
