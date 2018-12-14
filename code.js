@@ -26,11 +26,19 @@ function draw() {
     tetromino.drop();
     drawTetris();
   } else if (keyIsDown(32)) {
-    tetromino.tryToRotate();
+    if (!tetromino.tryToRotate()) {
+      if (tetromino.tryToMove(0, 1) && tetromino.tryToRotate()) {
+        //Do nothing, already done
+      }
+      else {
+        tetromino.tryToMove(0, -1) && tetromino.tryToRotate();
+      }
+    }
+  } else {
     drawTetris();
   }
 
-  //Drop
+//Drop
   if (frameCount % 5 === 0 && !tetromino.tryToMove(1, 0)) {
     board.draw();
     board.merge(tetromino);
@@ -103,9 +111,9 @@ function TetrisBoard(height, width) {
         isFull = isFull && (this.board[r][c] !== 0);
       }
       if (isFull) {
-        for (let r_up = r; r_up >= 0 ; r_up--) {
+        for (let r_up = r; r_up >= 0; r_up--) {
           for (let c_up = 0; c_up < this.width; c_up++) {
-            if(r_up !== 0) {
+            if (r_up !== 0) {
               this.board[r_up][c_up] = this.board[r_up - 1][c_up];
             } else {
               this.board[r_up][c_up] = 0;
