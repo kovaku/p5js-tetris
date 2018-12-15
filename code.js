@@ -3,6 +3,7 @@ const screenHeight = 24;
 
 let board;
 let tetromino;
+let shapes = new Shapes();
 
 function setup() {
   noCanvas();
@@ -10,7 +11,7 @@ function setup() {
   drawTable();
   board = new TetrisBoard(screenHeight, screenWidth);
   board.setup();
-  tetromino = new Tetromino(1, 5, 'todo', board);
+  tetromino = new Tetromino(1, 5, shapes.getRandomShape(), board);
 }
 
 function draw() {
@@ -42,7 +43,7 @@ function draw() {
   if (frameCount % 5 === 0 && !tetromino.tryToMove(1, 0)) {
     board.draw();
     board.merge(tetromino);
-    tetromino = new Tetromino(1, 5, 'todo', board);
+    tetromino = new Tetromino(1, 5, shapes.getRandomShape(), board);
     drawTetris();
   } else {
     drawTetris();
@@ -130,16 +131,14 @@ function TetrisBoard(height, width) {
  * @constructor
  */
 function Tetromino(r, c, shape, board) {
-  this.cells = []; // will be set using the shape
-  this.color = 1; // will be set using the shape
+  this.color = shape.color;
   this.center = new Cell(r, c);
   this.board = board;
+  this.cells = [];
 
-  //only for the time being, the shapes would enumerated
-  this.cells.push(new Cell(-1, 1));
-  this.cells.push(new Cell(-1, 0));
-  this.cells.push(new Cell(0, 0));
-  this.cells.push(new Cell(1, 0));
+  for (let i = 0; i < shape.cells.length; i++) {
+    this.cells.push(new Cell(shape.cells[i][0], shape.cells[i][1]));
+  }
 
   this.tryToMove = function (r, c) {
     let temp_r = this.center.r + r;
@@ -218,4 +217,29 @@ function Tetromino(r, c, shape, board) {
 function Cell(r, c) {
   this.r = r;
   this.c = c;
+}
+
+function Shape(name, color, cells) {
+  this.name = name;
+  this.color = color;
+  this.cells = cells;
+}
+
+function Shapes() {
+  this.shapes = [];
+  this.shapes.push(new Shape("I", 1, [[0, -1], [0, 0], [0, 1], [0, 2]]));
+  this.shapes.push(new Shape("O", 2, [[0, 0], [0, 1], [-1, 1], [-1, 0]]));
+  this.shapes.push(new Shape("T", 3, [[0, -1], [0, 0], [0, 1], [-1, 0]]));
+  this.shapes.push(new Shape("J", 4, [[-1, 0], [0, 0], [1, 0], [1, -1]]));
+  this.shapes.push(new Shape("L", 5, [[-1, 0], [0, 0], [1, 0], [1, 1]]));
+  this.shapes.push(new Shape("S", 6, [[0, -1], [0, 0], [1, 0], [1, 1]]));
+  this.shapes.push(new Shape("Z", 7, [[0, -1], [0, 0], [1, 0], [1, 1]]));
+
+  this.getShapeById = function (id) {
+    return this.shapes[id];
+  };
+
+  this.getRandomShape = function () {
+    return this.shapes[Math.floor((Math.random() * this.shapes.length))];
+  }
 }

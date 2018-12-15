@@ -8,11 +8,42 @@ div.cell {
   height: 22px;
 }
 
-div.cell[value='1'] {
-  background-color: black;
-  color: white;
-}
-
 div.cell[value='0'] {
   background-color: white;
+  color: black;
+}
+
+div.cell[value='1'] {
+  background-color: red;
+  color: red;
+}
+
+div.cell[value='2'] {
+  background-color: green;
+  color: green;
+}
+
+div.cell[value='3'] {
+  background-color: blue;
+  color: blue;
+}
+
+div.cell[value='4'] {
+  background-color: magenta;
+  color: magenta;
+}
+
+div.cell[value='5'] {
+  background-color: yellow;
+  color: yellow;
+}
+
+div.cell[value='6'] {
+  background-color: cyan;
+  color: cyan;
+}
+
+div.cell[value='7'] {
+  background-color: orange;
+  color: orange;
 }
