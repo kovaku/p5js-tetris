@@ -4,46 +4,49 @@ body {
 
 div.cell {
   display: inline-block;
-  width: 22px;
-  height: 22px;
+  width: 21px;
+  height: 21px;
+  margin: 0.5px;
+  border: solid black 0.5px;
 }
 
 div.cell[value='0'] {
   background-color: white;
   color: black;
+  border-color: white !important;
 }
 
 div.cell[value='1'] {
-  background-color: red;
-  color: red;
-}
-
-div.cell[value='2'] {
-  background-color: green;
-  color: green;
-}
-
-div.cell[value='3'] {
-  background-color: blue;
-  color: blue;
-}
-
-div.cell[value='4'] {
-  background-color: magenta;
-  color: magenta;
-}
-
-div.cell[value='5'] {
-  background-color: yellow;
-  color: yellow;
-}
-
-div.cell[value='6'] {
   background-color: cyan;
   color: cyan;
 }
 
-div.cell[value='7'] {
+div.cell[value='2'] {
+  background-color: yellow;
+  color: yellow;
+}
+
+div.cell[value='3'] {
+  background-color: purple;
+  color: purple;
+}
+
+div.cell[value='4'] {
+  background-color: blue;
+  color: blue;
+}
+
+div.cell[value='5'] {
   background-color: orange;
   color: orange;
+}
+
+div.cell[value='6'] {
+  background-color: green;
+  color: green;
+}
+
+div.cell[value='7'] {
+  background-color: red;
+  color: red;
 }

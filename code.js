@@ -1,17 +1,24 @@
 const screenWidth = 10;
-const screenHeight = 24;
+const screenHeight = 20;
+const frameRateCount = 10;
 
+let game;
 let board;
 let tetromino;
 let shapes = new Shapes();
 
 function setup() {
   noCanvas();
-  frameRate(25);
+  frameRate(frameRateCount);
   drawTable();
+  start();
+}
+
+function start() {
   board = new TetrisBoard(screenHeight, screenWidth);
   board.setup();
   tetromino = new Tetromino(1, 5, shapes.getRandomShape(), board);
+  game = true;
 }
 
 function draw() {
@@ -23,8 +30,11 @@ function draw() {
   } else if (keyIsDown(RIGHT_ARROW)) {
     tetromino.tryToMove(0, 1);
     drawTetris();
-  } else if (keyIsDown(DOWN_ARROW)) {
+  } else if (keyIsDown(UP_ARROW)) {
     tetromino.drop();
+    drawTetris();
+  } else if (keyIsDown(DOWN_ARROW)) {
+    tetromino.tryToMove(1, 0);
     drawTetris();
   } else if (keyIsDown(32)) {
     if (!tetromino.tryToRotate()) {
@@ -39,12 +49,19 @@ function draw() {
     drawTetris();
   }
 
-//Drop
+  //Auto drop
   if (frameCount % 5 === 0 && !tetromino.tryToMove(1, 0)) {
     board.draw();
     board.merge(tetromino);
     tetromino = new Tetromino(1, 5, shapes.getRandomShape(), board);
-    drawTetris();
+    if (board.isBlocked(tetromino)) {
+      //Game over and restart
+      game = false;
+      start();
+      return;
+    } else {
+      drawTetris();
+    }
   } else {
     drawTetris();
   }
@@ -63,7 +80,7 @@ function updateTableCell(r, c, value) {
 function drawTable() {
   let boardElement = createDiv().addClass('board');
   for (let row = 0; row < screenHeight; row++) {
-    let rowElement = createDiv();
+    let rowElement = createDiv().addClass('row');
     boardElement.child(rowElement);
     for (let column = 0; column < screenWidth; column++) {
       rowElement.child(createDiv()
@@ -103,6 +120,16 @@ function TetrisBoard(height, width) {
       + cell.c] = tetromino.color;
     }
     this.clearFullLines();
+  };
+
+  this.isBlocked = function (tetromino) {
+    for (let i = 0; i < tetromino.cells.length; i++) {
+      let cell = tetromino.cells[i];
+      let temp_cell = this.board[tetromino.center.r + cell.r][tetromino.center.c + cell.c];
+      if(temp_cell !== 0) {
+        return true;
+      }
+    }
   };
 
   this.clearFullLines = function () {
@@ -191,6 +218,10 @@ function Tetromino(r, c, shape, board) {
       if (this.board.board[temp_cell_r][temp_cell_c] !== 0) {
         return false;
       }
+      //No rotation needed or the O tetromino
+      if (shape.name === "O") {
+        return true;
+      }
 
       temp_Cells.push(new Cell(temp_r, temp_c))
     }
@@ -209,22 +240,8 @@ function Tetromino(r, c, shape, board) {
 }
 
 /**
- * Object representing a coordinate pair
- * @param r is the vertical coordinate of the given point
- * @param c is the horizontal coordinate of the given point
- * @constructor
+ * Object to store blueprint of the tetromino elements
  */
-function Cell(r, c) {
-  this.r = r;
-  this.c = c;
-}
-
-function Shape(name, color, cells) {
-  this.name = name;
-  this.color = color;
-  this.cells = cells;
-}
-
 function Shapes() {
   this.shapes = [];
   this.shapes.push(new Shape("I", 1, [[0, -1], [0, 0], [0, 1], [0, 2]]));
@@ -242,4 +259,28 @@ function Shapes() {
   this.getRandomShape = function () {
     return this.shapes[Math.floor((Math.random() * this.shapes.length))];
   }
+}
+
+/**
+ * Object representing a coordinate pair
+ * @param r is the vertical coordinate of the given point
+ * @param c is the horizontal coordinate of the given point
+ * @constructor
+ */
+function Cell(r, c) {
+  this.r = r;
+  this.c = c;
+}
+
+/**
+ * Simple object to represent a tetromino
+ * @param name is the literal representation of the tetromino
+ * @param color represents the color index of the tetromino
+ * @param cells is an array of coordinate pairs
+ * @constructor
+ */
+function Shape(name, color, cells) {
+  this.name = name;
+  this.color = color;
+  this.cells = cells;
 }
