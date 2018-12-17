@@ -30,13 +30,13 @@ function draw() {
   } else if (keyIsDown(RIGHT_ARROW)) {
     tetromino.tryToMove(0, 1);
     drawTetris();
-  } else if (keyIsDown(UP_ARROW)) {
+  } else if (keyIsDown(32)) {
     tetromino.drop();
     drawTetris();
   } else if (keyIsDown(DOWN_ARROW)) {
     tetromino.tryToMove(1, 0);
     drawTetris();
-  } else if (keyIsDown(32)) {
+  } else if (keyIsDown(UP_ARROW)) {
     if (!tetromino.tryToRotate()) {
       if (tetromino.tryToMove(0, 1) && tetromino.tryToRotate()) {
         //Do nothing, already done
@@ -212,8 +212,9 @@ function Tetromino(r, c, shape, board) {
       if (temp_cell_c === screenWidth || temp_cell_c < 0) {
         return false;
       }
-      if (temp_cell_r === screenHeight) {
-        return false;
+      //No retry for this case
+      if (temp_cell_r === screenHeight || temp_cell_r < 0) {
+        return true;
       }
       if (this.board.board[temp_cell_r][temp_cell_c] !== 0) {
         return false;
