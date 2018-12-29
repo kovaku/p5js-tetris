@@ -1,3 +1,5 @@
+"use strict";
+
 const screenWidth = 10;
 const screenHeight = 20;
 const frameRateCount = 10;
@@ -5,24 +7,25 @@ const frameRateCount = 10;
 let game;
 let board;
 let tetromino;
+let screen;
 let shapes = new Shapes();
 
 function setup() {
   noCanvas();
   frameRate(frameRateCount);
-  drawTable();
+  screen = new ScreenBuffer(screenHeight, screenWidth).setup();
+  screen.drawTable();
   start();
 }
 
 function start() {
-  board = new TetrisBoard(screenHeight, screenWidth);
-  board.setup();
+  screen = new ScreenBuffer(screenHeight, screenWidth).setup();
+  board = new TetrisBoard(screenHeight, screenWidth).setup();
   tetromino = new Tetromino(1, 5, shapes.getRandomShape(), board);
   game = true;
 }
 
 function draw() {
-
   //Moves
   if (keyIsDown(LEFT_ARROW)) {
     tetromino.tryToMove(0, -1);
@@ -51,7 +54,7 @@ function draw() {
 
   //Auto drop
   if (frameCount % 5 === 0 && !tetromino.tryToMove(1, 0)) {
-    board.draw();
+    drawTetris();
     board.merge(tetromino);
     tetromino = new Tetromino(1, 5, shapes.getRandomShape(), board);
     if (board.isBlocked(tetromino)) {
@@ -68,25 +71,79 @@ function draw() {
 }
 
 function drawTetris() {
-  //Todo: draw only the change
-  board.draw();
-  tetromino.draw();
+  screen.draw(board.getBoard(), tetromino.getTetromino(), tetromino.getColor());
 }
 
-function updateTableCell(r, c, value) {
-  select('.r' + r + 'c' + c).attribute('value', value).html('\u00B7');
-}
+function ScreenBuffer(height, width) {
+  this.height = height;
+  this.width = width;
+  this.newScreen = [];
+  this.oldScreen = [];
 
-function drawTable() {
-  let boardElement = createDiv().addClass('board');
-  for (let row = 0; row < screenHeight; row++) {
-    let rowElement = createDiv().addClass('row');
-    boardElement.child(rowElement);
-    for (let column = 0; column < screenWidth; column++) {
-      rowElement.child(createDiv()
-      .addClass('r' + row + 'c' + column)
-      .addClass('cell'));
+  this.setup = function () {
+    this.newScreen = new Array(this.height);
+    for (let r = 0; r < this.newScreen.length; r++) {
+      this.newScreen[r] = new Array(this.width);
+      for (let c = 0; c < this.newScreen[r].length; c++) {
+        this.newScreen[r][c] = 0;
+      }
     }
+    this.oldScreen = new Array(this.height);
+    for (let r = 0; r < this.oldScreen.length; r++) {
+      this.oldScreen[r] = new Array(this.width);
+      for (let c = 0; c < this.oldScreen[r].length; c++) {
+        this.oldScreen[r][c] = -1;
+      }
+    }
+    return this;
+  };
+
+  this.drawTable = function () {
+    let boardElement = createDiv().addClass('board');
+    for (let row = 0; row < this.height; row++) {
+      let rowElement = createDiv().addClass('row');
+      boardElement.child(rowElement);
+      for (let column = 0; column < this.width; column++) {
+        rowElement.child(createDiv()
+        .addClass('r' + row + 'c' + column)
+        .addClass('cell')
+        .attribute('value', 0)
+        .html('\u00B7'));
+      }
+    }
+  };
+
+  this.draw = function (board, tetromino, color) {
+    //Draw the board and tetromino to a virtual screen
+    for (let r = 0; r < this.newScreen.length; r++) {
+      for (let c = 0; c < this.newScreen[r].length; c++) {
+        this.newScreen[r][c] = board[r][c];
+      }
+    }
+
+    for (let i = 0; i < tetromino.length; i++) {
+      let cell = tetromino[i];
+      this.newScreen[cell.r][cell.c] = color;
+    }
+
+    for (let r = 0; r < this.newScreen.length; r++) {
+      for (let c = 0; c < this.newScreen[r].length; c++) {
+        //Only draw the differences to the screen
+        if (this.newScreen[r][c] !== this.oldScreen[r][c]) {
+          this.updateTableCell(r, c, this.newScreen[r][c]);
+        }
+      }
+    }
+    //Cache the previous state
+    for (let r = 0; r < this.newScreen.length; r++) {
+      for (let c = 0; c < this.newScreen[r].length; c++) {
+        this.oldScreen[r][c] = this.newScreen[r][c];
+      }
+    }
+  };
+
+  this.updateTableCell = function (r, c, value) {
+    select('.r' + r + 'c' + c).attribute('value', value);
   }
 }
 
@@ -103,14 +160,11 @@ function TetrisBoard(height, width) {
         this.board[r][c] = 0;
       }
     }
+    return this;
   };
 
-  this.draw = function () {
-    for (let r = 0; r < this.height; r++) {
-      for (let c = 0; c < this.width; c++) {
-        updateTableCell(r, c, this.board[r][c]);
-      }
-    }
+  this.getBoard = function () {
+    return this.board;
   };
 
   this.merge = function (tetromino) {
@@ -125,8 +179,9 @@ function TetrisBoard(height, width) {
   this.isBlocked = function (tetromino) {
     for (let i = 0; i < tetromino.cells.length; i++) {
       let cell = tetromino.cells[i];
-      let temp_cell = this.board[tetromino.center.r + cell.r][tetromino.center.c + cell.c];
-      if(temp_cell !== 0) {
+      let temp_cell = this.board[tetromino.center.r + cell.r][tetromino.center.c
+      + cell.c];
+      if (temp_cell !== 0) {
         return true;
       }
     }
@@ -231,12 +286,17 @@ function Tetromino(r, c, shape, board) {
     this.cells = temp_Cells;
   };
 
-  this.draw = function () {
+  this.getTetromino = function () {
+    let tetromino = [];
     for (let i = 0; i < this.cells.length; i++) {
       let cell = this.cells[i];
-      updateTableCell(this.center.r + cell.r, this.center.c + cell.c,
-          this.color);
+      tetromino.push(new Cell(this.center.r + cell.r, this.center.c + cell.c));
     }
+    return tetromino;
+  };
+
+  this.getColor = function () {
+    return this.color;
   };
 }
 
