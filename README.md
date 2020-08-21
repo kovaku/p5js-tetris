@@ -1,4 +1,4 @@
 # p5_tetris
-Implementing a tetris game clone, just for fun.
+Tetris game clone using p5.js, just for fun.
 
 Try at <https://kovaku.github.io/p5_tetris/>
